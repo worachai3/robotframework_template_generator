@@ -3,7 +3,6 @@ from Classes.settings import Settings
 from Classes.keywords import Keywords
 from Classes.variables import Variables
 from Classes.testcases import Testcases
-import pandas as pd
 
 
 testcases_file_path = sys.argv[1]
@@ -21,23 +20,10 @@ class RobotTemplateGenerator():
             self.new_robot_file.write(line + splitter)
 
     def generate_testcases_section(self):
-        df = pd.read_excel(testcases_file_path, usecols='D, E, M, Q, Y')
-        testcases = Testcases(old_robot_file_path, testcases_file_path)
-        # testcases from excel
-        for index, row in df.iterrows():
-            testcases.find_testcase_script_from_testcases_row(row)
-            if not testcases.script:
-                testcases.gen_new_testcase(row)
-                self.write_list_into_file(testcases.script, '\n')
-                continue
-            if index == 0:
-                testcases.script.insert(0, '*** Test Cases ***')
-            self.write_list_into_file(testcases.script, '\n')
-        # remain testcases
-        testcases.find_testcases_not_generated()
-        if not testcases.script:
-            return
-        self.write_list_into_file(testcases.script, '\n')
+        testcases = Testcases(testcases_file_path,
+                              old_robot_file_path, self.new_robot_file)
+        testcases.generate_testcases_from_testcases_file()
+        testcases.generate_remaining_testcases()
 
     def generate_variables_section(self):
         variables = Variables(old_robot_file_path)
