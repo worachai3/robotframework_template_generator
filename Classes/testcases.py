@@ -12,9 +12,9 @@ defects = 'Defects'
 
 class Testcases(Base):
 
-    def __init__(self, testcases_file_path, old_robot_file_path, new_robot_file):
+    def __init__(self, tc_file_path, old_robot_file_path, new_robot_file):
         Base.__init__(self)
-        self.testcases_file_path = testcases_file_path
+        self.tc_file_path = tc_file_path
         self.old_robot_file_path = old_robot_file_path
         self.new_robot_file = new_robot_file
         self.found_testcases_section = False
@@ -195,7 +195,7 @@ class Testcases(Base):
             self.new_robot_file.write(line + splitter)
 
     def generate_testcases_from_testcases_file(self):
-        df = pd.read_excel(self.testcases_file_path, usecols='D, E, M, Q, Y')
+        df = pd.read_excel(self.tc_file_path, usecols='D, E, M, Q, Y')
         for index, row in df.iterrows():
             self.find_testcase_script_from_testcases_row(row)
             if not self.script:
