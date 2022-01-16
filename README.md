@@ -13,7 +13,7 @@ pip install -r requirement.txt
 # Excel File Structure
 ---
 
-![alt text](./static/ExcelFileStructure.png "Title")
+![alt text](https://www.img.in.th/images/46f85264e853bfdc14ba83d8b738eefa.png)
 
 Excel file must has column name and column index according to table below  
 
