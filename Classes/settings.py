@@ -12,6 +12,8 @@ class Settings(Base):
     def find_settings_script(self):
         self.found_settings_section = False
         self.script = []
+        if self.is_empty_file(self.old_robot_file_path):
+            self.script.append('*** Settings ***\n\n')
         old_robot_file = open(self.old_robot_file_path, 'r+')
         for line in old_robot_file:
             line = line.strip('\n')

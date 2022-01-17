@@ -12,6 +12,8 @@ class Keywords(Base):
     def find_keywords_script(self):
         self.found_keywords = False
         self.script = []
+        if self.is_empty_file(self.old_robot_file_path):
+            return
         old_robot_file = open(self.old_robot_file_path, 'r+')
         for line in old_robot_file:
             line = line.strip('\n')
