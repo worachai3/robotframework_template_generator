@@ -16,6 +16,7 @@ class Testcases(Base):
         Base.__init__(self)
         self.old_robot_file_path = old_robot_file_path
         self.found_testcases_section = False
+        self.found_new_testcase = False
         self.found_testcase = False
         self.found_documentation = False
         self.found_documentation_first_row = False
@@ -26,6 +27,7 @@ class Testcases(Base):
 
     def __set_all_variables_to_default(self):
         self.found_testcases_section = False
+        self.found_new_testcase = False
         self.found_testcase = False
         self.found_documentation = False
         self.found_documentation_first_row = False
@@ -35,6 +37,7 @@ class Testcases(Base):
 
     def __set_found_variables_to_false(self):
         self.found_testcases_section = False
+        self.found_new_testcase = False
         self.found_testcase = False
         self.found_documentation = False
         self.found_documentation_first_row = False
@@ -134,7 +137,7 @@ class Testcases(Base):
             else:
                 self.found_testcase = True
 
-    def __not_found_testcase_or_not_end_of_testcase(self, line):
+    def __not_found_testcase_or_not_end_of_testcase(self):
         if not self.found_testcase and not self.found_new_testcase:
             return True
         return False
@@ -197,7 +200,7 @@ class Testcases(Base):
             if not self.found_testcases_section:
                 continue
             self.__set_variables_when_found_new_testcase_number(line)
-            if self.__not_found_testcase_or_not_end_of_testcase(line):
+            if self.__not_found_testcase_or_not_end_of_testcase():
                 continue
             if self.__is_testcase_generated(line):
                 continue
