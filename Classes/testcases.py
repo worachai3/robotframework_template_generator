@@ -12,11 +12,9 @@ defects = 'Defects'
 
 class Testcases(Base):
 
-    def __init__(self, tc_file_path, old_robot_file_path, new_robot_file):
+    def __init__(self, old_robot_file_path):
         Base.__init__(self)
-        self.tc_file_path = tc_file_path
         self.old_robot_file_path = old_robot_file_path
-        self.new_robot_file = new_robot_file
         self.found_testcases_section = False
         self.found_testcase = False
         self.found_documentation = False
@@ -26,7 +24,7 @@ class Testcases(Base):
         self.generated_testcases = []
         self.script = []
 
-    def __set_variables_to_default(self):
+    def __set_all_variables_to_default(self):
         self.found_testcases_section = False
         self.found_testcase = False
         self.found_documentation = False
@@ -34,6 +32,14 @@ class Testcases(Base):
         self.found_tags = False
         self.found_tags_first_row = False
         self.script = []
+
+    def __set_found_variables_to_false(self):
+        self.found_testcases_section = False
+        self.found_testcase = False
+        self.found_documentation = False
+        self.found_documentation_first_row = False
+        self.found_tags = False
+        self.found_tags_first_row = False
 
     def __is_testcase_generated(self, testcase_no):
         if testcase_no in self.generated_testcases:
@@ -51,9 +57,9 @@ class Testcases(Base):
         return tag_str
 
     def __add_tag_to_tag_str(self, tag_str, tags):
-        tag_list = tags.split(',')
         if pd.isnull(tags):
             return
+        tag_list = tags.split(',')
         for i in range(len(tag_list)):
             tag_str += '    ' + tag_list[i].strip()
         return tag_str
@@ -133,15 +139,14 @@ class Testcases(Base):
             return True
         return False
 
-    def gen_new_testcase(self, row):
-        self.__set_variables_to_default()
+    def __gen_new_testcase(self, row):
         self.script.append(row[tc_no])
         self.script.append('    ' + '[Documentation]' + '    ' + row[tc_name])
         self.__add_tag(row)
         self.script.append('')
 
     def find_testcase_script_from_testcases_row(self, row):
-        self.__set_variables_to_default()
+        self.__set_found_variables_to_false()
         old_robot_file = open(self.old_robot_file_path, 'r+')
         for line in old_robot_file:
             line = line.strip('\n')
@@ -170,8 +175,21 @@ class Testcases(Base):
             self.__append_to_list(line)
         old_robot_file.close()
 
-    def find_testcases_not_generated(self):
-        self.__set_variables_to_default()
+    def __find_testcases_script_from_testcases_file(self, testcases_file_path):
+        df = pd.read_excel(testcases_file_path, usecols='D, E, M, Q, Y')
+        for index, row in df.iterrows():
+            self.find_testcase_script_from_testcases_row(row)
+            if not self.found_testcase:
+                self.__gen_new_testcase(row)
+                continue
+        self.script.insert(0, '*** Test Cases ***')
+
+    def find_testcases_script(self, testcases_file_path):
+        self.__set_all_variables_to_default()
+        self.__find_testcases_script_from_testcases_file(testcases_file_path)
+        self.__find_testcases_not_generated()
+
+    def __find_testcases_not_generated(self):
         old_robot_file = open(self.old_robot_file_path, 'r+')
         for line in old_robot_file:
             line = line.strip('\n')
@@ -189,26 +207,3 @@ class Testcases(Base):
                 break
             self.script.append(line)
         old_robot_file.close()
-
-    def __write_list_into_file(self, list, splitter):
-        for line in list:
-            self.new_robot_file.write(line + splitter)
-
-    def generate_testcases_from_testcases_file(self):
-        df = pd.read_excel(self.tc_file_path, usecols='D, E, M, Q, Y')
-        for index, row in df.iterrows():
-            self.find_testcase_script_from_testcases_row(row)
-            if not self.script:
-                self.gen_new_testcase(row)
-                self.__write_list_into_file(self.script, '\n')
-                continue
-            if index == 0:
-                self.script.insert(0, '*** Test Cases ***')
-            self.__write_list_into_file(self.script, '\n')
-        self.__write_list_into_file(self.script, '\n')
-
-    def generate_remaining_testcases(self):
-        self.find_testcases_not_generated()
-        if not self.script:
-            return
-        self.write_list_into_file(self.script, '\n')

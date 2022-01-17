@@ -20,10 +20,11 @@ class RobotTemplateGenerator():
             self.new_robot_file.write(line + splitter)
 
     def generate_testcases_section(self):
-        testcases = Testcases(testcases_file_path,
-                              old_robot_file_path, self.new_robot_file)
-        testcases.generate_testcases_from_testcases_file()
-        testcases.generate_remaining_testcases()
+        testcases = Testcases(old_robot_file_path)
+        testcases.find_testcases_script(testcases_file_path)
+        if not testcases.script:
+            return
+        self.write_list_into_file(testcases.script, '\n')
 
     def generate_variables_section(self):
         variables = Variables(old_robot_file_path)
