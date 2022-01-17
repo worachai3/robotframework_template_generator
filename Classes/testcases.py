@@ -216,8 +216,8 @@ class Testcases(Base):
         self.__append_space_to_last_element_to_list()
         old_robot_file.close()
 
-    def __find_testcases_script_from_testcases_file(self, testcases_file_path):
-        df = pd.read_excel(testcases_file_path, usecols='D, E, M, Q, Y')
+    def __find_testcases_script_from_testcases_file(self, tc_file_path):
+        df = pd.read_excel(tc_file_path, usecols='D, E, M, Q, Y')
         self.__check_testcases_duplicate()
         for index, row in df.iterrows():
             if not self.is_empty_file(self.old_robot_file_path):
@@ -225,6 +225,41 @@ class Testcases(Base):
             if not self.found_testcase:
                 self.__gen_new_testcase(row)
         self.script.insert(0, '*** Test Cases ***')
+
+    def __generate_testcases_script_from_testcases_file(self, tc_file_path):
+        pass
+        # read excel file
+        df = pd.read_excel(tc_file_path, usecols='D, E, M, Q, Y')
+        # for index, row in excel:
+        for index, row in df.iterrows():
+            self.__append_testcase_number_to_list(row[tc_no])
+            self.__append_documentation_to_list(row[tc_no])
+            self.__append_tags_to_list(row[tc_no])
+            self.__append_test_step_to_list(row[tc_no])
+        self.script.insert(0, '*** Test Cases ***')
+
+    def __append_testcase_number_to_list_from_existing(self, tc_no):
+        pass
+
+    def __append_documentation_to_list_from_existing(self, tc_no):
+        pass
+
+    def __append_tags_to_list_from_existing(self, tc_no):
+        pass
+
+    def __append_test_step_to_list_fromexisting(self, tc_no):
+        pass
+
+    def __generate_testcases_script_from_exisiting_script(self, tc_file_path):
+        pass
+        # open old robot file
+        old_robot_file = open(self.old_robot_file_path, 'r+')
+        # for line in old robot_file:
+        for line in old_robot_file:
+            if self.__found_testcases_number(line):
+                if not self.__is_testcase_generated(line):
+                    self.__append_existing_testcase(line)
+        old_robot_file.close()
 
     def __find_testcases_not_generated(self):
         old_robot_file = open(self.old_robot_file_path, 'r+')
@@ -247,7 +282,7 @@ class Testcases(Base):
             self.script.append(line)
         old_robot_file.close()
 
-    def find_testcases_script(self, testcases_file_path):
+    def find_testcases_script(self, tc_file_path):
         self.__set_all_variables_to_default()
-        self.__find_testcases_script_from_testcases_file(testcases_file_path)
+        self.__find_testcases_script_from_testcases_file(tc_file_path)
         self.__find_testcases_not_generated()
