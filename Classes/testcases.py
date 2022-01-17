@@ -83,6 +83,19 @@ class Testcases(Base):
                     tag_list.insert(index, '\n    ...    ')
         return tag_list
 
+    def __append_to_list(self, line):
+        self.script.append(line)
+
+    def __append_tags_to_list(self, tag_list):
+        tag_str = self.__get_tag_string()
+        for tag in tag_list:
+            tag = tag.strip()
+            if tag != '...':
+                tag_str += '    ' + tag
+            else:
+                tag_str += '\n    ...   '
+        self.__append_to_list(tag_str)
+
     def __append_tag_from_excel(self, row):
         tag_list = []
         tag_list = self.__add_single_string_to_tag_list(tag_list, row[feature])
@@ -110,53 +123,6 @@ class Testcases(Base):
         tag_list = self.__add_new_line_to_tag_list(tag_list)
         self.__append_tags_to_list(tag_list)
 
-    def __append_tc_number_to_list(self, line):
-        self.__append_to_list(line)
-        self.generated_testcases.append(line)
-
-    def __append_documentation_to_list(self, testcase_name):
-        self.__append_to_list(self.__get_tc_name_string(testcase_name))
-
-    def __append_tags_to_list(self, tag_list):
-        tag_str = self.__get_tag_string()
-        for tag in tag_list:
-            tag = tag.strip()
-            if tag != '...':
-                tag_str += '    ' + tag
-            else:
-                tag_str += '\n    ...   '
-        self.__append_to_list(tag_str)
-
-    def __append_space_to_last_element_to_list(self):
-        if self.script:
-            if self.script[-1].strip() != '':
-                self.__append_to_list('')
-
-    def __append_to_list(self, line):
-        self.script.append(line)
-
-    def __append_test_step_to_list(self, testcase_no):
-        found_tc = False
-        old_robot_file = open(self.old_robot_file_path)
-        for line in old_robot_file:
-            if self.__is_match_tc_number(line, testcase_no):
-                found_tc = True
-                continue
-            if not found_tc:
-                continue
-            if self.__is_not_test_step_in_tc(line):
-                continue
-            if self.__is_end_of_testcase(line):
-                break
-            self.__append_to_list(line.rstrip())
-        if not found_tc:
-            self.__append_new_tc_test_step()
-        self.__append_space_to_last_element_to_list()
-
-    def __append_new_tc_test_step(self):
-        self.script.append('    Log To Console    EMPTY TEST CASE SCRIPT')
-        self.script.append('')
-
     def __append_tag_list_option_y(self, row, found_tc):
         tag_excel = self.__get_tags_from_excel(row, found_tc)
         tag_list = self.__get_tags_from_tc_number(row[tc_no])
@@ -182,6 +148,40 @@ class Testcases(Base):
             self.__append_tag_list_option_y(row, found_tc)
         elif self.tag_option == 'n':
             self.__append_tag_list_option_n(row, found_tc)
+
+    def __append_documentation_to_list(self, testcase_name):
+        self.__append_to_list(self.__get_tc_name_string(testcase_name))
+
+    def __append_space_to_last_element_to_list(self):
+        if self.script:
+            if self.script[-1].strip() != '':
+                self.__append_to_list('')
+
+    def __append_tc_number_to_list(self, line):
+        self.__append_to_list(line)
+        self.generated_testcases.append(line)
+
+    def __append_test_step_to_list(self, testcase_no):
+        found_tc = False
+        old_robot_file = open(self.old_robot_file_path)
+        for line in old_robot_file:
+            if self.__is_match_tc_number(line, testcase_no):
+                found_tc = True
+                continue
+            if not found_tc:
+                continue
+            if self.__is_not_test_step_in_tc(line):
+                continue
+            if self.__is_end_of_testcase(line):
+                break
+            self.__append_to_list(line.rstrip())
+        if not found_tc:
+            self.__append_new_tc_test_step()
+        self.__append_space_to_last_element_to_list()
+
+    def __append_new_tc_test_step(self):
+        self.script.append('    Log To Console    EMPTY TEST CASE SCRIPT')
+        self.script.append('')
 
     def __get_line_length(self):
         return line_length
