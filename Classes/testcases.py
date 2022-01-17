@@ -58,7 +58,7 @@ class Testcases(Base):
 
     def __add_tag_to_tag_str(self, tag_str, tags):
         if pd.isnull(tags):
-            return
+            return tag_str
         tag_list = tags.split(',')
         for i in range(len(tag_list)):
             tag_str += '    ' + tag_list[i].strip()
@@ -145,7 +145,10 @@ class Testcases(Base):
         self.__add_tag(row)
         self.script.append('')
 
-    def find_testcase_script_from_testcases_row(self, row):
+    # def __is_empty_file(self, file):
+    #     return os.stat(file).st_size == 0
+
+    def __find_testcase_script_from_testcases_row(self, row):
         self.__set_found_variables_to_false()
         old_robot_file = open(self.old_robot_file_path, 'r+')
         for line in old_robot_file:
@@ -178,16 +181,11 @@ class Testcases(Base):
     def __find_testcases_script_from_testcases_file(self, testcases_file_path):
         df = pd.read_excel(testcases_file_path, usecols='D, E, M, Q, Y')
         for index, row in df.iterrows():
-            self.find_testcase_script_from_testcases_row(row)
+            if not self.is_empty_file(self.old_robot_file_path):
+                self.__find_testcase_script_from_testcases_row(row)
             if not self.found_testcase:
                 self.__gen_new_testcase(row)
-                continue
         self.script.insert(0, '*** Test Cases ***')
-
-    def find_testcases_script(self, testcases_file_path):
-        self.__set_all_variables_to_default()
-        self.__find_testcases_script_from_testcases_file(testcases_file_path)
-        self.__find_testcases_not_generated()
 
     def __find_testcases_not_generated(self):
         old_robot_file = open(self.old_robot_file_path, 'r+')
@@ -207,3 +205,8 @@ class Testcases(Base):
                 break
             self.script.append(line)
         old_robot_file.close()
+
+    def find_testcases_script(self, testcases_file_path):
+        self.__set_all_variables_to_default()
+        self.__find_testcases_script_from_testcases_file(testcases_file_path)
+        self.__find_testcases_not_generated()
