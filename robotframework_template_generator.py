@@ -19,30 +19,35 @@ class RobotTemplateGenerator():
         for line in list:
             self.new_robot_file.write(line + splitter)
 
+    def get_tag_option_from_user_input(self):
+        tag_option = input('Do you want to keep tags in old script?(y/n): ')
+        return tag_option
+
     def generate_testcases_section(self):
-        testcases = Testcases(old_robot_file_path)
-        testcases.find_testcases_script(testcases_file_path)
+        tag_option = self.get_tag_option_from_user_input()
+        testcases = Testcases(old_robot_file_path, tag_option)
+        testcases.generate_testcases_script(testcases_file_path)
         if not testcases.script:
             return
         self.write_list_into_file(testcases.script, '\n')
 
     def generate_variables_section(self):
         variables = Variables(old_robot_file_path)
-        variables.find_variables_script()
+        variables.generate_variables_script()
         if not variables.script:
             return
         self.write_list_into_file(variables.script, '\n')
 
     def generate_keywords_section(self):
         keywords = Keywords(old_robot_file_path)
-        keywords.find_keywords_script()
+        keywords.generate_keywords_script()
         if not keywords.script:
             return
         self.write_list_into_file(keywords.script, '\n')
 
     def generate_settings_section(self):
         settings = Settings(old_robot_file_path)
-        settings.find_settings_script()
+        settings.generate_settings_script()
         if not settings.script:
             return
         self.write_list_into_file(settings.script, '\n')

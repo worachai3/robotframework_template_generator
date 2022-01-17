@@ -6,11 +6,10 @@ class Keywords(Base):
     def __init__(self, old_robot_file_path):
         Base.__init__(self)
         self.old_robot_file_path = old_robot_file_path
-        self.found_keywords = False
         self.script = []
 
-    def find_keywords_script(self):
-        self.found_keywords = False
+    def generate_keywords_script(self):
+        found_keywords = False
         self.script = []
         if self.is_empty_file(self.old_robot_file_path):
             return
@@ -18,10 +17,10 @@ class Keywords(Base):
         for line in old_robot_file:
             line = line.strip('\n')
             if self.match(line, '*** keywords ***'):
-                self.found_keywords = True
+                found_keywords = True
                 self.script.append('*** Keywords ***')
                 continue
-            if not self.found_keywords:
+            if not found_keywords:
                 continue
             if self.is_end_of_section(line):
                 break

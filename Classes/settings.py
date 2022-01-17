@@ -6,11 +6,10 @@ class Settings(Base):
     def __init__(self, old_robot_file_path):
         Base.__init__(self)
         self.old_robot_file_path = old_robot_file_path
-        self.found_settings_section = False
         self.script = []
 
-    def find_settings_script(self):
-        self.found_settings_section = False
+    def generate_settings_script(self):
+        found_settings_section = False
         self.script = []
         if self.is_empty_file(self.old_robot_file_path):
             self.script.append('*** Settings ***\n\n')
@@ -18,10 +17,10 @@ class Settings(Base):
         for line in old_robot_file:
             line = line.strip('\n')
             if self.match(line, '*** settings ***'):
-                self.found_settings_section = True
+                found_settings_section = True
                 self.script.append('*** Settings ***')
                 continue
-            if not self.found_settings_section:
+            if not found_settings_section:
                 continue
             if self.is_end_of_section(line):
                 break
