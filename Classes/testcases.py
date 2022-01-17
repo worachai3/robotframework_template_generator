@@ -141,7 +141,7 @@ class Testcases(Base):
             self.__add_tag(row)
 
     def __found_testcases_number(self, line):
-        return re.search('^[A-Za-z]+-[0-9]+$', line)
+        return re.search('^[A-Za-z]+-[0-9]+$', line.strip())
 
     def __get_testcase_name_string(self, testcase_name):
         res = ''
@@ -167,6 +167,23 @@ class Testcases(Base):
         self.__add_tag(row)
         self.script.append('    Log To Console    EMPTY TEST CASE SCRIPT')
         self.script.append('')
+
+    def __check_testcases_duplicate(self):
+        testcases_dictionary = {}
+        if self.is_empty_file(self.old_robot_file_path):
+            return
+        old_robot_file = open(self.old_robot_file_path, 'r+')
+        for line in old_robot_file:
+            line = line.strip()
+            if self.__found_testcases_number(line):
+                if line in testcases_dictionary:
+                    testcases_dictionary[line] += 1
+                else:
+                    testcases_dictionary[line] = 0
+        for testcase_no, amount in testcases_dictionary.items():
+            if amount > 0:
+                print('{} is duplicated {} time(s) in old script.'.format(
+                    testcase_no, amount))
 
     def __find_testcase_script_from_testcases_row(self, row):
         self.__set_found_variables_to_false()
@@ -201,6 +218,7 @@ class Testcases(Base):
 
     def __find_testcases_script_from_testcases_file(self, testcases_file_path):
         df = pd.read_excel(testcases_file_path, usecols='D, E, M, Q, Y')
+        self.__check_testcases_duplicate()
         for index, row in df.iterrows():
             if not self.is_empty_file(self.old_robot_file_path):
                 self.__find_testcase_script_from_testcases_row(row)
