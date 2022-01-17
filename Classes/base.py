@@ -7,4 +7,4 @@ class Base:
         return os.stat(file).st_size == 0
 
     def match(self, line, str):
-        return line.lower() == str.lower()
+        return line.lower().strip() == str.lower().strip()
