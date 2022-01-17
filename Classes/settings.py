@@ -23,7 +23,7 @@ class Settings(Base):
                 continue
             if not self.found_settings_section:
                 continue
-            if line.startswith('***'):
+            if self.is_end_of_section(line):
                 break
             self.script.append(line)
         old_robot_file.close()

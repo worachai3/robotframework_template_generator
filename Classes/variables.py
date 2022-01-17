@@ -20,7 +20,7 @@ class Variables(Base):
                 continue
             if not found_variables:
                 continue
-            if line.startswith('***'):
+            if self.is_end_of_section(line):
                 break
             self.script.append(line)
         old_robot_file.close()

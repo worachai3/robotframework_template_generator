@@ -23,7 +23,7 @@ class Keywords(Base):
                 continue
             if not self.found_keywords:
                 continue
-            if line.startswith('***'):
+            if self.is_end_of_section(line):
                 break
             self.script.append(line)
         old_robot_file.close()
