@@ -148,9 +148,6 @@ class Testcases(Base):
         self.__add_tag(row)
         self.script.append('')
 
-    # def __is_empty_file(self, file):
-    #     return os.stat(file).st_size == 0
-
     def __find_testcase_script_from_testcases_row(self, row):
         self.__set_found_variables_to_false()
         old_robot_file = open(self.old_robot_file_path, 'r+')
