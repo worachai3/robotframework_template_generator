@@ -3,6 +3,8 @@ import re
 import pandas as pd
 
 
+feature = 'Feature'
+subfeature = 'Sub Feature'
 tc_no = 'Test Cases No.'
 tc_name = 'Test Cases Name'
 tag = 'Tag / Requirement Ref.'
@@ -77,31 +79,27 @@ class Testcases(Base):
     def __is_testcase_generated(self, testcase_no):
         return testcase_no in self.generated_testcases
 
-    def __add_priority_to_tag_str(self, tag_str, priority):
-        tag_str += '    ' + priority
+    def __add_single_string_to_tag_str(self, tag_str, string):
+        string = str(string)
+        tag_str += '    ' + string
         return tag_str
 
-    def __add_tag_to_tag_str(self, tag_str, tags):
-        if pd.isnull(tags):
+    def __add_multiple_string_to_tag_str(self, tag_str, str):
+        if pd.isnull(str):
             return tag_str
-        tag_list = tags.split(',')
-        for i in range(len(tag_list)):
-            tag_str += '    ' + tag_list[i].strip()
-        return tag_str
-
-    def __add_defect_to_tag_str(self, tag_str, defects):
-        if pd.isnull(defects):
-            return tag_str
-        defect_list = str(defects).split(',')
-        for i in range(len(defect_list)):
-            tag_str += '    ' + defect_list[i].strip()
+        str_list = str.split(',')
+        for i in range(len(str_list)):
+            tag_str += '    ' + str_list[i].strip()
         return tag_str
 
     def __add_tag(self, row):
         tag_str = '    [Tags]'
-        tag_str = self.__add_priority_to_tag_str(tag_str, row[priority])
-        tag_str = self.__add_tag_to_tag_str(tag_str, row[tag])
-        tag_str = self.__add_defect_to_tag_str(tag_str, row[defects])
+        tag_str = self.__add_single_string_to_tag_str(tag_str, row[feature])
+        tag_str = self.__add_single_string_to_tag_str(tag_str, row[subfeature])
+        tag_str = self.__add_single_string_to_tag_str(tag_str, row[priority])
+        tag_str = self.__add_multiple_string_to_tag_str(tag_str, row[tag])
+        tag_str = self.__add_multiple_string_to_tag_str(tag_str, row[defects])
+        tag_str = self.__add_single_string_to_tag_str(tag_str, 'NotReady')
         self.script.append(tag_str)
 
     def __append_testcase_number_to_list(self, line):
@@ -217,7 +215,7 @@ class Testcases(Base):
         old_robot_file.close()
 
     def __find_testcases_script_from_testcases_file(self, testcases_file_path):
-        df = pd.read_excel(testcases_file_path, usecols='D, E, M, Q, Y')
+        df = pd.read_excel(testcases_file_path, usecols='B, C, D, E, M, Q, Y')
         self.__check_testcases_duplicate()
         for index, row in df.iterrows():
             if not self.is_empty_file(self.old_robot_file_path):
