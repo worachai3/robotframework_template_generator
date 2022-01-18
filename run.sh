@@ -5,14 +5,15 @@
 Help()
 {
    # Display Help
-   echo "Add description of the script functions here."
+   echo "DESCRIPTION:"
+   echo "    This script will create new robotframework script, which update documentation and tags depended on user's option."
    echo
-   echo "Syntax: scriptTemplate [-g|h|v|V]"
-   echo "options:"
-   echo "g     Print the GPL license notification."
-   echo "h     Print this Help."
-   echo "v     Verbose mode."
-   echo "V     Print software version and exit."
+   echo "SYNTAX:"
+   echo "    run.sh [-h|m] file.xlsx script1.robot script2.robot"
+   echo
+   echo "OPTIONS:"
+   echo "    h   Print this Help."
+   echo "    m   Merge tags from file.xlsx with scrip1.robot (keep only tags in file.xlsx by default)"
    echo
 }
 
@@ -22,7 +23,6 @@ Help()
 ############################################################
 ############################################################
 
-# TAGOPTION=n
 RUN=true
 TAGOPTION=n
 while getopts ":hm" option; do
