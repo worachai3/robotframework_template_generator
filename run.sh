@@ -43,5 +43,5 @@ done
 
 if [ "$RUN" = true ]
     then
-        python robotframework_template_generator.py $1 $2 $3 "$TAGOPTION"
+        python robotframework_template_generator.py $1 $2 $3 $TAGOPTION
 fi

@@ -158,8 +158,8 @@ class Testcases(Base):
                 self.__append_to_list('')
 
     def __append_tc_number_to_list(self, line):
-        self.__append_to_list(line)
-        self.generated_testcases.append(line)
+        self.__append_to_list(line.strip())
+        self.generated_testcases.append(line.strip())
 
     def __append_test_step_to_list(self, testcase_no):
         found_tc = False
@@ -274,7 +274,6 @@ class Testcases(Base):
 
     def __get_testcases_script_from_testcases_file(self, tc_file_path):
         df = pd.read_excel(tc_file_path, usecols='B, C, D, E, M, Q, Y')
-        self.__check_testcases_duplicate()
         for index, row in df.iterrows():
             self.__append_tc_number_to_list(row[tc_no])
             self.__append_documentation_to_list(row[tc_name])
@@ -293,23 +292,6 @@ class Testcases(Base):
             if not self.in_list(tag_list[i], tags_excel_list):
                 tags_excel_list.append(tag_list[i].strip())
         return tags_excel_list
-
-    def __check_testcases_duplicate(self):
-        testcases_dictionary = {}
-        if self.is_empty_file(self.old_robot_file_path):
-            return
-        old_robot_file = open(self.old_robot_file_path, 'r+')
-        for line in old_robot_file:
-            line = line.strip()
-            if self.__is_tc_number(line):
-                if line in testcases_dictionary:
-                    testcases_dictionary[line] += 1
-                else:
-                    testcases_dictionary[line] = 0
-        for testcase_no, amount in testcases_dictionary.items():
-            if amount > 0:
-                print('{} is duplicated {} time(s) in old script.'.format(
-                    testcase_no, amount))
 
     def generate_testcases_script(self, tc_file_path):
         self.__get_testcases_script_from_testcases_file(tc_file_path)
