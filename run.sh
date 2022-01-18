@@ -24,7 +24,7 @@ Help()
 
 # TAGOPTION=n
 RUN=true
-TAGOPTION=n
+TAGOPTION='n'
 while getopts ":hm" option; do
     case $option in
         h ) # display Help
@@ -32,8 +32,8 @@ while getopts ":hm" option; do
             RUN=false
             exit;;
         m )
-            TAGOPTION=y
-            exit;;
+            TAGOPTION='y'
+            ;;
         \? )
             echo "Error: Invalid option"
             RUN=false
