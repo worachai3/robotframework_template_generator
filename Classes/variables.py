@@ -8,19 +8,19 @@ class Variables(Base):
         self.old_robot_file_path = old_robot_file_path
         self.script = []
 
-    def find_variables_script(self):
-        found_variables = False
+    def generate_variables_script(self):
+        found_variables_section = False
         self.script = []
         old_robot_file = open(self.old_robot_file_path, 'r+')
         for line in old_robot_file:
             line = line.strip('\n')
             if self.match(line, '*** variables ***'):
-                found_variables = True
+                found_variables_section = True
                 self.script.append('*** Variables ***')
                 continue
-            if not found_variables:
+            if not found_variables_section:
                 continue
-            if line.startswith('***'):
+            if self.is_end_of_section(line):
                 break
             self.script.append(line)
         old_robot_file.close()

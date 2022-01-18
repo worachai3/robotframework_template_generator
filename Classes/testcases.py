@@ -3,152 +3,248 @@ import re
 import pandas as pd
 
 
+feature = 'Feature'
+subfeature = 'Sub Feature'
 tc_no = 'Test Cases No.'
 tc_name = 'Test Cases Name'
 tag = 'Tag / Requirement Ref.'
 priority = 'Priority'
 defects = 'Defects'
+line_length = 120
+test_cases_string = '*** Test Cases ***'
+documentation_string = '    [Documentation]    '
+tags_string = '    [Tags]'
 
 
 class Testcases(Base):
 
-    def __init__(self, old_robot_file_path):
+    def __init__(self, old_robot_file_path, tag_option):
         Base.__init__(self)
         self.old_robot_file_path = old_robot_file_path
-        self.found_testcases_section = False
-        self.found_new_testcase = False
-        self.found_testcase = False
-        self.found_documentation = False
-        self.found_documentation_first_row = False
-        self.found_tags = False
-        self.found_tags_first_row = False
+        self.tag_option = tag_option.lower()
         self.generated_testcases = []
         self.script = []
 
-    def __set_all_variables_to_default(self):
-        self.found_testcases_section = False
-        self.found_new_testcase = False
-        self.found_testcase = False
-        self.found_documentation = False
-        self.found_documentation_first_row = False
-        self.found_tags = False
-        self.found_tags_first_row = False
-        self.script = []
-
-    def __set_found_variables_to_false(self):
-        self.found_testcases_section = False
-        self.found_new_testcase = False
-        self.found_testcase = False
-        self.found_documentation = False
-        self.found_documentation_first_row = False
-        self.found_tags = False
-        self.found_tags_first_row = False
-
-    def __set_variables_when_found_new_testcase_number(self, line):
-        if self.__found_testcases_number(line):
-            if self.found_testcase:
-                self.found_testcase = False
-                self.found_new_testcase = True
-            else:
-                self.found_testcase = True
-
-    def __is_not_found_testcase_or_is_not_end_of_testcase(self):
-        return not self.found_testcase and not self.found_new_testcase
-
-    def __is_end_of_documentation_or_tags(self, line):
-        if (self.found_documentation_first_row or self.found_tags_first_row):
-            return line.startswith('    ...')
-
-    def __is_end_of_testcases_section(self, line):
-        return line.startswith('***')
+    def __is_not_end_of_tags(self, line):
+        return line.startswith('    ...')
 
     def __is_documentation(self, line):
-        return line.startswith('    [Documentation]')
+        return line.startswith(self.__get_documentation_string())
 
     def __is_tags(self, line):
-        return line.startswith('    [Tags]')
+        return line.startswith(self.__get_tag_string())
 
-    def __is_testcase_section(self, line):
-        return self.match(line, '*** test cases ***')
+    def __is_tc_section(self, line):
+        return self.match(line, self.__get_test_cases_string())
 
-    def __is_name_too_long(self, name):
-        return len(name) >= 120
+    def __is_line_too_long(self, line):
+        return len(line) >= self.__get_line_length()
 
-    def __is_testcase_generated(self, testcase_no):
+    def __is_tc_generated(self, testcase_no):
         return testcase_no in self.generated_testcases
 
-    def __add_priority_to_tag_str(self, tag_str, priority):
-        tag_str += '    ' + priority
-        return tag_str
+    def __is_end_of_testcase(self, line):
+        return self.is_end_of_section(line) or self.__is_tc_number(line)
 
-    def __add_tag_to_tag_str(self, tag_str, tags):
-        if pd.isnull(tags):
-            return tag_str
-        tag_list = tags.split(',')
-        for i in range(len(tag_list)):
-            tag_str += '    ' + tag_list[i].strip()
-        return tag_str
+    def __is_tc_number(self, line):
+        return re.search('^[A-Za-z]+-[0-9]+$', line.strip())
 
-    def __add_defect_to_tag_str(self, tag_str, defects):
-        if pd.isnull(defects):
-            return tag_str
-        defect_list = str(defects).split(',')
-        for i in range(len(defect_list)):
-            tag_str += '    ' + defect_list[i].strip()
-        return tag_str
+    def __is_match_tc_number(self, line, matcher):
+        return self.__is_tc_number(line) and self.match(line, matcher)
 
-    def __add_tag(self, row):
-        tag_str = '    [Tags]'
-        tag_str = self.__add_priority_to_tag_str(tag_str, row[priority])
-        tag_str = self.__add_tag_to_tag_str(tag_str, row[tag])
-        tag_str = self.__add_defect_to_tag_str(tag_str, row[defects])
-        self.script.append(tag_str)
+    def __is_tc_number_and_is_not_generated(self, line):
+        return self.__is_tc_number(line) and not self.__is_tc_generated(line)
 
-    def __append_testcase_number_to_list(self, line):
-        self.found_testcase = True
+    def __is_not_test_step_in_tc(self, line):
+        return self.__is_documentation(line) or self.__is_tags(line) or (
+            self.__is_not_end_of_tags(line))
+
+    def __add_single_string_to_tag_list(self, tag_list, string):
+        string = str(string)
+        tag_list.append(string)
+        return tag_list
+
+    def __add_multiple_string_to_tag_list(self, tag_list, str):
+        if pd.isnull(str):
+            return tag_list
+        str_list = str.split(',')
+        for i in range(len(str_list)):
+            tag_list.append(str_list[i].strip())
+        return tag_list
+
+    def __add_new_line_to_tag_list(self, tag_list):
+        line = self.__get_tag_string() + '    '
+        for index in range(len(tag_list)):
+            if not self.__is_line_too_long(line + '    ' + tag_list[index]):
+                line += tag_list[index].strip() + '    '
+            else:
+                if tag_list[index] != tag_list[-1]:
+                    line = '    ...    '
+                    tag_list.insert(index, '\n    ...    ')
+        return tag_list
+
+    def __append_to_list(self, line):
         self.script.append(line)
-        self.generated_testcases.append(line)
 
-    def __append_documentation_to_list(self, row):
-        self.found_documentation = True
-        self.found_documentation_first_row = True
-        self.script.append(self.__get_testcase_name_string(row[tc_name]))
+    def __append_tags_to_list(self, tag_list):
+        tag_str = self.__get_tag_string()
+        for tag in tag_list:
+            tag = tag.strip()
+            if tag != '...':
+                tag_str += '    ' + tag
+            else:
+                tag_str += '\n    ...   '
+        self.__append_to_list(tag_str)
 
-    def __append_tags_to_list(self, row):
-        if not self.found_documentation:
-            self.found_documentation = True
-            self.script.append(self.__get_testcase_name_string(row[tc_name]))
-        self.found_tags = True
-        self.found_tags_first_row = True
-        self.__add_tag(row)
+    def __append_tag_from_excel(self, row):
+        tag_list = []
+        tag_list = self.__add_single_string_to_tag_list(tag_list, row[feature])
+        tag_list = self.__add_single_string_to_tag_list(
+            tag_list, row[subfeature])
+        tag_list = self.__add_single_string_to_tag_list(
+            tag_list, row[priority])
+        tag_list = self.__add_multiple_string_to_tag_list(tag_list, row[tag])
+        tag_list = self.__add_multiple_string_to_tag_list(
+            tag_list, row[defects])
+        tag_list = self.__add_new_line_to_tag_list(tag_list)
+        self.__append_tags_to_list(tag_list)
+
+    def __append_tag_from_excel_new_case(self, row):
+        tag_list = []
+        tag_list = self.__add_single_string_to_tag_list(tag_list, row[feature])
+        tag_list = self.__add_single_string_to_tag_list(
+            tag_list, row[subfeature])
+        tag_list = self.__add_single_string_to_tag_list(
+            tag_list, row[priority])
+        tag_list = self.__add_multiple_string_to_tag_list(tag_list, row[tag])
+        tag_list = self.__add_multiple_string_to_tag_list(
+            tag_list, row[defects])
+        tag_list = self.__add_single_string_to_tag_list(tag_list, 'NotReady')
+        tag_list = self.__add_new_line_to_tag_list(tag_list)
+        self.__append_tags_to_list(tag_list)
+
+    def __append_tag_list_option_y(self, row, found_tc):
+        tag_excel = self.__get_tags_from_excel(row, found_tc)
+        tag_list = self.__get_tags_from_tc_number(row[tc_no].strip())
+        tag_list = self.__merge_tags_with_existing_tag(tag_list, tag_excel)
+        tag_list = self.__add_new_line_to_tag_list(tag_list)
+        self.__append_tags_to_list(tag_list)
+
+    def __append_tag_list_option_n(self, row, found_tc):
+        if found_tc:
+            self.__append_tag_from_excel(row)
+        else:
+            self.__append_tag_from_excel_new_case(row)
+
+    def __append_tag_by_tc_no(self, row):
+        old_robot_file = open(self.old_robot_file_path)
+        found_tc = False
+        for line in old_robot_file:
+            if self.__is_match_tc_number(line, row[tc_no].strip()):
+                found_tc = True
+                break
+        old_robot_file.close()
+        if self.tag_option == 'y':
+            self.__append_tag_list_option_y(row, found_tc)
+        elif self.tag_option == 'n':
+            self.__append_tag_list_option_n(row, found_tc)
+
+    def __append_documentation_to_list(self, testcase_name):
+        self.__append_to_list(self.__get_tc_name_string(testcase_name))
 
     def __append_space_to_last_element_to_list(self):
         if self.script:
             if self.script[-1].strip() != '':
                 self.__append_to_list('')
 
-    def __append_to_list(self, line):
-        self.script.append(line)
-        self.found_documentation_first_row = False
-        self.found_tags_first_row = False
+    def __append_tc_number_to_list(self, line):
+        self.__append_to_list(line.strip())
+        self.generated_testcases.append(line.strip())
 
-    def __exceptional_case(self, row):
-        if not self.found_documentation:
-            self.found_documentation = True
-            self.script.append(self.__get_testcase_name_string(row[tc_name]))
-        if not self.found_tags:
-            self.found_tags = True
-            self.__add_tag(row)
+    def __append_test_step_to_list(self, testcase_no):
+        found_tc = False
+        old_robot_file = open(self.old_robot_file_path)
+        for line in old_robot_file:
+            if self.__is_match_tc_number(line, testcase_no):
+                found_tc = True
+                continue
+            if not found_tc:
+                continue
+            if self.__is_not_test_step_in_tc(line):
+                continue
+            if self.__is_end_of_testcase(line):
+                break
+            self.__append_to_list(line.rstrip())
+        if not found_tc:
+            self.__append_new_tc_test_step()
+        self.__append_space_to_last_element_to_list()
 
-    def __found_testcases_number(self, line):
-        return re.search('^[A-Za-z]+-[0-9]+$', line.strip())
+    def __append_new_tc_test_step(self):
+        self.script.append('    Log To Console    EMPTY TEST CASE SCRIPT')
+        self.script.append('')
 
-    def __get_testcase_name_string(self, testcase_name):
+    def __get_line_length(self):
+        return line_length
+
+    def __get_test_cases_string(self):
+        return test_cases_string
+
+    def __get_documentation_string(self):
+        return documentation_string
+
+    def __get_tag_string(self):
+        return tags_string
+
+    def __get_tag_list_from_line(self, line):
+        res_tag_list = []
+        tag_str = line.strip('   ...   ')
+        tag_list = tag_str.split(' ')
+        for tag in tag_list:
+            tag = tag.strip()
+            if tag != '' and tag != '[Tags]':
+                res_tag_list.append(tag)
+        return res_tag_list
+
+    def __get_tags_from_tc_number(self, testcase_no):
+        res_tag_list = []
+        found_tag = False
+        found_tc = False
+        old_robot_file = open(self.old_robot_file_path)
+        for line in old_robot_file:
+            if not found_tc:
+                if self.__is_match_tc_number(line, testcase_no):
+                    found_tc = True
+                continue
+            if self.__is_tags(line):
+                found_tag = True
+                tag_list = self.__get_tag_list_from_line(line)
+                self.append_items_from_list_to_list(tag_list, res_tag_list)
+            if found_tag and self.__is_not_end_of_tags(line):
+                tag_list = self.__get_tag_list_from_line(line)
+                self.append_items_from_list_to_list(tag_list, res_tag_list)
+            if self.__is_tc_number(line) and found_tag:
+                break
+        old_robot_file.close()
+        return res_tag_list
+
+    def __get_tags_from_excel(self, row, found_tc):
+        tag_excel = '{}, {}, {}'.format(
+            row[feature], row[subfeature], row[priority])
+        if not pd.isnull(row[tag]):
+            tag_excel += ', {}'.format(row[tag])
+        if not pd.isnull(row[defects]):
+            tag_excel += ', {}'.format(row[defects])
+        if not found_tc:
+            tag_excel += ', NotReady'
+        tag_excel = tag_excel.replace(' ', '')
+        return tag_excel
+
+    def __get_tc_name_string(self, testcase_name):
         res = ''
-        line = '    [Documentation]    '
+        line = self.__get_documentation_string()
         testcase_name_list = testcase_name.split()
         for index in range(len(testcase_name_list)):
-            if not self.__is_name_too_long(line + testcase_name_list[index]):
+            if not self.__is_line_too_long(line + testcase_name_list[index]):
                 line += testcase_name_list[index].strip() + ' '
                 res += testcase_name_list[index].strip() + ' '
             else:
@@ -158,96 +254,45 @@ class Testcases(Base):
         res = self.__get_documentation_string() + res
         return res
 
-    def __get_documentation_string(self):
-        return '    ' + '[Documentation]' + '    '
-
-    def __gen_new_testcase(self, row):
-        self.script.append(row[tc_no])
-        self.script.append(self.__get_testcase_name_string(row[tc_name]))
-        self.__add_tag(row)
-        self.script.append('    Log To Console    EMPTY TEST CASE SCRIPT')
-        self.script.append('')
-
-    def __check_testcases_duplicate(self):
-        testcases_dictionary = {}
-        if self.is_empty_file(self.old_robot_file_path):
-            return
+    def __get_testcases_script_from_exisiting_script(self):
+        found_tc = False
         old_robot_file = open(self.old_robot_file_path, 'r+')
         for line in old_robot_file:
-            line = line.strip()
-            if self.__found_testcases_number(line):
-                if line in testcases_dictionary:
-                    testcases_dictionary[line] += 1
+            line = line.strip('\n')
+            if self.__is_tc_number_and_is_not_generated(line.strip()):
+                found_tc = True
+                self.__append_to_list(line.strip())
+                continue
+            if self.__is_end_of_testcase(line) and found_tc:
+                if self.__is_tc_number(line) and self.__is_tc_generated(line):
+                    found_tc = False
                 else:
-                    testcases_dictionary[line] = 0
-        for testcase_no, amount in testcases_dictionary.items():
-            if amount > 0:
-                print('{} is duplicated {} time(s) in old script.'.format(
-                    testcase_no, amount))
-
-    def __find_testcase_script_from_testcases_row(self, row):
-        self.__set_found_variables_to_false()
-        old_robot_file = open(self.old_robot_file_path, 'r+')
-        for line in old_robot_file:
-            line = line.strip('\n')
-            if self.match(line, row[tc_no]):
-                self.__append_testcase_number_to_list(line)
-                continue
-            if not self.found_testcase:
-                continue
-            if self.__found_testcases_number(line):
-                break
-            if self.__is_documentation(line):
-                if self.found_documentation:
-                    continue
-                self.__append_documentation_to_list(row)
-                continue
-            if self.__is_tags(line):
-                if self.found_tags:
-                    continue
-                self.__append_tags_to_list(row)
-                continue
-            if self.__is_end_of_documentation_or_tags(line):
-                continue
-            self.__exceptional_case(row)
-            if self.__is_end_of_testcases_section(line):
-                break
-            self.__append_to_list(line)
-        self.__append_space_to_last_element_to_list()
+                    break
+            if found_tc:
+                self.__append_to_list(line)
         old_robot_file.close()
 
-    def __find_testcases_script_from_testcases_file(self, testcases_file_path):
-        df = pd.read_excel(testcases_file_path, usecols='D, E, M, Q, Y')
-        self.__check_testcases_duplicate()
+    def __get_testcases_script_from_testcases_file(self, tc_file_path):
+        df = pd.read_excel(tc_file_path, usecols='B, C, D, E, M, Q, Y')
         for index, row in df.iterrows():
-            if not self.is_empty_file(self.old_robot_file_path):
-                self.__find_testcase_script_from_testcases_row(row)
-            if not self.found_testcase:
-                self.__gen_new_testcase(row)
-        self.script.insert(0, '*** Test Cases ***')
+            self.__append_tc_number_to_list(row[tc_no].strip())
+            self.__append_documentation_to_list(row[tc_name])
+            self.__append_tag_by_tc_no(row)
+            self.__append_test_step_to_list(row[tc_no].strip())
+        self.script.insert(0, self.__get_test_cases_string())
 
-    def __find_testcases_not_generated(self):
-        old_robot_file = open(self.old_robot_file_path, 'r+')
-        for line in old_robot_file:
-            line = line.strip('\n')
-            if self.__is_testcase_section(line):
-                self.found_testcases_section = True
-                continue
-            if not self.found_testcases_section:
-                continue
-            self.__set_variables_when_found_new_testcase_number(line)
-            if self.__is_not_found_testcase_or_is_not_end_of_testcase():
-                continue
-            if self.__is_testcase_generated(line):
-                self.found_testcase = False
-                self.found_new_testcase = False
-                continue
-            if self.__is_end_of_testcases_section(line):
-                break
-            self.script.append(line)
-        old_robot_file.close()
+    def __merge_tags_with_existing_tag(self, tag_list, tags_excel):
+        if pd.isnull(tags_excel):
+            return tag_list
+        tags_excel = tags_excel.strip(' ')
+        tags_excel_list = tags_excel.split(',')
+        if not tag_list:
+            return tags_excel_list
+        for i in range(len(tag_list)):
+            if not self.in_list(tag_list[i], tags_excel_list):
+                tags_excel_list.append(tag_list[i].strip())
+        return tags_excel_list
 
-    def find_testcases_script(self, testcases_file_path):
-        self.__set_all_variables_to_default()
-        self.__find_testcases_script_from_testcases_file(testcases_file_path)
-        self.__find_testcases_not_generated()
+    def generate_testcases_script(self, tc_file_path):
+        self.__get_testcases_script_from_testcases_file(tc_file_path)
+        self.__get_testcases_script_from_exisiting_script()
