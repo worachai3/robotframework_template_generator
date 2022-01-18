@@ -34,6 +34,10 @@ while getopts ":hm" option; do
         m )
             TAGOPTION=y
             exit;;
+        \? )
+            echo "Error: Invalid option"
+            RUN=false
+            exit;;
    esac
 done
 

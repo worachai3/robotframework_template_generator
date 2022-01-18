@@ -4,11 +4,17 @@ from Classes.keywords import Keywords
 from Classes.variables import Variables
 from Classes.testcases import Testcases
 
+try:
+    testcases_file_path = sys.argv[1]
+    old_robot_file_path = sys.argv[2]
+    new_robot_file_path = sys.argv[3]
+    tag_option = sys.argv[4]
+except IndexError:
+    print('You did not specify a file')
+    sys.exit(1)
 
-testcases_file_path = sys.argv[1]
-old_robot_file_path = sys.argv[2]
-new_robot_file_path = sys.argv[3]
-tag_option = sys.argv[4]
+err_missing_param = '''Missing parameter(s) please run command \'./run.sh
+                    -h\' to see how to use script'''
 
 
 class RobotTemplateGenerator():
