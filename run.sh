@@ -24,7 +24,7 @@ Help()
 
 # TAGOPTION=n
 RUN=true
-TAGOPTION='n'
+TAGOPTION=n
 while getopts ":hm" option; do
     case $option in
         h ) # display Help
@@ -32,16 +32,14 @@ while getopts ":hm" option; do
             RUN=false
             exit;;
         m )
-            TAGOPTION='y'
-            ;;
+            TAGOPTION=y
+            python3 robotframework_template_generator.py $2 $3 $4 $TAGOPTION
+            exit;;
         \? )
             echo "Error: Invalid option"
             RUN=false
             exit;;
    esac
 done
-
-if [ "$RUN" = true ]
-    then
-        python3 robotframework_template_generator.py $1 $2 $3 $TAGOPTION
-fi
+# If option is not set
+python3 robotframework_template_generator.py $1 $2 $3 $TAGOPTION
