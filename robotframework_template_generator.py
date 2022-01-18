@@ -8,6 +8,7 @@ from Classes.testcases import Testcases
 testcases_file_path = sys.argv[1]
 old_robot_file_path = sys.argv[2]
 new_robot_file_path = sys.argv[3]
+tag_option = sys.argv[4]
 
 
 class RobotTemplateGenerator():
@@ -19,12 +20,7 @@ class RobotTemplateGenerator():
         for line in list:
             self.new_robot_file.write(line + splitter)
 
-    def get_tag_option_from_user_input(self):
-        tag_option = input('Do you want to keep tags in old script?(y/n): ')
-        return tag_option
-
     def generate_testcases_section(self):
-        tag_option = self.get_tag_option_from_user_input()
         testcases = Testcases(old_robot_file_path, tag_option)
         testcases.generate_testcases_script(testcases_file_path)
         if not testcases.script:
