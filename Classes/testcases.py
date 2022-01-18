@@ -125,7 +125,7 @@ class Testcases(Base):
 
     def __append_tag_list_option_y(self, row, found_tc):
         tag_excel = self.__get_tags_from_excel(row, found_tc)
-        tag_list = self.__get_tags_from_tc_number(row[tc_no])
+        tag_list = self.__get_tags_from_tc_number(row[tc_no].strip())
         tag_list = self.__merge_tags_with_existing_tag(tag_list, tag_excel)
         tag_list = self.__add_new_line_to_tag_list(tag_list)
         self.__append_tags_to_list(tag_list)
@@ -140,7 +140,7 @@ class Testcases(Base):
         old_robot_file = open(self.old_robot_file_path)
         found_tc = False
         for line in old_robot_file:
-            if self.__is_match_tc_number(line, row[tc_no]):
+            if self.__is_match_tc_number(line, row[tc_no].strip()):
                 found_tc = True
                 break
         old_robot_file.close()
@@ -259,9 +259,9 @@ class Testcases(Base):
         old_robot_file = open(self.old_robot_file_path, 'r+')
         for line in old_robot_file:
             line = line.strip('\n')
-            if self.__is_tc_number_and_is_not_generated(line):
+            if self.__is_tc_number_and_is_not_generated(line.strip()):
                 found_tc = True
-                self.__append_to_list(line)
+                self.__append_to_list(line.strip())
                 continue
             if self.__is_end_of_testcase(line) and found_tc:
                 if self.__is_tc_number(line) and self.__is_tc_generated(line):
@@ -275,10 +275,10 @@ class Testcases(Base):
     def __get_testcases_script_from_testcases_file(self, tc_file_path):
         df = pd.read_excel(tc_file_path, usecols='B, C, D, E, M, Q, Y')
         for index, row in df.iterrows():
-            self.__append_tc_number_to_list(row[tc_no])
+            self.__append_tc_number_to_list(row[tc_no].strip())
             self.__append_documentation_to_list(row[tc_name])
             self.__append_tag_by_tc_no(row)
-            self.__append_test_step_to_list(row[tc_no])
+            self.__append_test_step_to_list(row[tc_no].strip())
         self.script.insert(0, self.__get_test_cases_string())
 
     def __merge_tags_with_existing_tag(self, tag_list, tags_excel):
