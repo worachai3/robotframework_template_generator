@@ -3,6 +3,9 @@ import os
 
 class Base:
 
+    def is_end_of_section(self, line):
+        return line.startswith('***')
+
     def is_empty_file(self, file):
         return os.stat(file).st_size == 0
 
@@ -19,5 +22,6 @@ class Base:
             if item.strip().lower() == tag.strip().lower():
                 return True
 
-    def is_end_of_section(self, line):
-        return line.startswith('***')
+    def remove_duplicate_from_list(self, list):
+        res = [i for n, i in enumerate(list) if i not in list[:n]]
+        return res

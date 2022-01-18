@@ -5,14 +5,15 @@
 Help()
 {
    # Display Help
-   echo "DESCRIPTION"
-   echo "This script will create new robotframework script, which update documentation and tags depended on user's option."
+   echo "DESCRIPTION:"
+   echo "    This script will create new robotframework script, which update documentation and tags depended on user's option."
    echo
-   echo "Syntax: run.sh [-h|m] file.xlsx script1.robot script2.robot"
+   echo "SYNTAX:"
+   echo "    run.sh [-h|m] file.xlsx script1.robot script2.robot"
    echo
-   echo "options:"
-   echo "h     Print this Help."
-   echo "m     Merge tags from file.xlsx with scrip1.robot.(keep only tags in file.xlsx by default)"
+   echo "OPTIONS:"
+   echo "    h   Print this Help."
+   echo "    m   Merge tags from file.xlsx with scrip1.robot (keep only tags in file.xlsx by default)"
    echo
 }
 

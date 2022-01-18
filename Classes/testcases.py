@@ -49,6 +49,11 @@ class Testcases(Base):
     def __is_tc_number(self, line):
         return re.search('^[A-Za-z]+-[0-9]+$', line.strip())
 
+    def __is_tag_added(self, tag, tag_list):
+        for t in tag_list:
+            if tag.strip().lower() == t.strip().lower():
+                return True
+
     def __is_match_tc_number(self, line, matcher):
         return self.__is_tc_number(line) and self.match(line, matcher)
 
@@ -74,6 +79,7 @@ class Testcases(Base):
 
     def __add_new_line_to_tag_list(self, tag_list):
         line = self.__get_tag_string() + '    '
+        tag_list = [i for n, i in enumerate(tag_list) if i not in tag_list[:n]]
         for index in range(len(tag_list)):
             if not self.__is_line_too_long(line + '    ' + tag_list[index]):
                 line += tag_list[index].strip() + '    '
@@ -87,6 +93,7 @@ class Testcases(Base):
         self.script.append(line)
 
     def __append_tags_to_list(self, tag_list):
+        self.remove_duplicate_from_list(tag_list)
         tag_str = self.__get_tag_string()
         for tag in tag_list:
             tag = tag.strip()
@@ -96,7 +103,7 @@ class Testcases(Base):
                 tag_str += '\n    ...   '
         self.__append_to_list(tag_str)
 
-    def __append_tag_from_excel(self, row):
+    def __get_tag_from_excel(self, row):
         tag_list = []
         tag_list = self.__add_single_string_to_tag_list(tag_list, row[feature])
         tag_list = self.__add_single_string_to_tag_list(
@@ -106,10 +113,11 @@ class Testcases(Base):
         tag_list = self.__add_multiple_string_to_tag_list(tag_list, row[tag])
         tag_list = self.__add_multiple_string_to_tag_list(
             tag_list, row[defects])
+        self.remove_duplicate_from_list(tag_list)
         tag_list = self.__add_new_line_to_tag_list(tag_list)
-        self.__append_tags_to_list(tag_list)
+        return tag_list
 
-    def __append_tag_from_excel_new_case(self, row):
+    def __get_tag_from_excel_new_case(self, row):
         tag_list = []
         tag_list = self.__add_single_string_to_tag_list(tag_list, row[feature])
         tag_list = self.__add_single_string_to_tag_list(
@@ -120,21 +128,27 @@ class Testcases(Base):
         tag_list = self.__add_multiple_string_to_tag_list(
             tag_list, row[defects])
         tag_list = self.__add_single_string_to_tag_list(tag_list, 'NotReady')
+        self.remove_duplicate_from_list(tag_list)
         tag_list = self.__add_new_line_to_tag_list(tag_list)
-        self.__append_tags_to_list(tag_list)
+        return tag_list
 
     def __append_tag_list_option_y(self, row, found_tc):
-        tag_excel = self.__get_tags_from_excel(row, found_tc)
+        tag_excel = self.__get_tag_list_from_excel_check_existed(row, found_tc)
         tag_list = self.__get_tags_from_tc_number(row[tc_no].strip())
         tag_list = self.__merge_tags_with_existing_tag(tag_list, tag_excel)
         tag_list = self.__add_new_line_to_tag_list(tag_list)
         self.__append_tags_to_list(tag_list)
 
-    def __append_tag_list_option_n(self, row, found_tc):
+    def __get_tag_list_from_excel_check_existed(self, row, found_tc):
         if found_tc:
-            self.__append_tag_from_excel(row)
+            tag_list = self.__get_tag_from_excel(row)
         else:
-            self.__append_tag_from_excel_new_case(row)
+            tag_list = self.__get_tag_from_excel_new_case(row)
+        return tag_list
+
+    def __append_tag_list_option_n(self, row, found_tc):
+        tag_list = self.__get_tag_list_from_excel_check_existed(row, found_tc)
+        self.__append_tags_to_list(tag_list)
 
     def __append_tag_by_tc_no(self, row):
         old_robot_file = open(self.old_robot_file_path)
@@ -197,11 +211,12 @@ class Testcases(Base):
 
     def __get_tag_list_from_line(self, line):
         res_tag_list = []
-        tag_str = line.strip('   ...   ')
+        tag_str = line.replace('...', '')
+        tag_str = line.replace('[Tags]', '')
         tag_list = tag_str.split(' ')
         for tag in tag_list:
             tag = tag.strip()
-            if tag != '' and tag != '[Tags]':
+            if tag != '' and not self.__is_tag_added(tag, res_tag_list):
                 res_tag_list.append(tag)
         return res_tag_list
 
@@ -225,19 +240,8 @@ class Testcases(Base):
             if self.__is_tc_number(line) and found_tag:
                 break
         old_robot_file.close()
+        self.remove_duplicate_from_list(res_tag_list)
         return res_tag_list
-
-    def __get_tags_from_excel(self, row, found_tc):
-        tag_excel = '{}, {}, {}'.format(
-            row[feature], row[subfeature], row[priority])
-        if not pd.isnull(row[tag]):
-            tag_excel += ', {}'.format(row[tag])
-        if not pd.isnull(row[defects]):
-            tag_excel += ', {}'.format(row[defects])
-        if not found_tc:
-            tag_excel += ', NotReady'
-        tag_excel = tag_excel.replace(' ', '')
-        return tag_excel
 
     def __get_tc_name_string(self, testcase_name):
         res = ''
@@ -281,16 +285,15 @@ class Testcases(Base):
             self.__append_test_step_to_list(row[tc_no].strip())
         self.script.insert(0, self.__get_test_cases_string())
 
-    def __merge_tags_with_existing_tag(self, tag_list, tags_excel):
-        if pd.isnull(tags_excel):
+    def __merge_tags_with_existing_tag(self, tag_list, tags_excel_list):
+        if not tags_excel_list and tag_list:
             return tag_list
-        tags_excel = tags_excel.strip(' ')
-        tags_excel_list = tags_excel.split(',')
-        if not tag_list:
+        if not tag_list and tags_excel_list:
             return tags_excel_list
         for i in range(len(tag_list)):
             if not self.in_list(tag_list[i], tags_excel_list):
                 tags_excel_list.append(tag_list[i].strip())
+        self.remove_duplicate_from_list(tags_excel_list)
         return tags_excel_list
 
     def generate_testcases_script(self, tc_file_path):
