@@ -260,7 +260,7 @@ class Testcases(Base):
             else:
                 if testcase_name_list[index] != testcase_name_list[-1]:
                     line = '    ...    '
-                    res += '\n    ...    '
+                    res += '\n    ...    ' + testcase_name_list[index] + ' '
         res = self.__get_documentation_string() + res
         return res
 
