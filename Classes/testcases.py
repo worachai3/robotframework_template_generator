@@ -98,7 +98,6 @@ class Testcases(Base):
         self.script.append(line)
 
     def __append_tags_to_list(self, tag_list):
-        tag_list = self.remove_duplicate_from_list(tag_list)
         tag_str = self.__get_tag_string()
         for tag in tag_list:
             tag = tag.replace(' ', '')
