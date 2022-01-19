@@ -23,23 +23,22 @@ Help()
 ############################################################
 ############################################################
 
-RUN=true
 TAGOPTION=n
+BASEDIR=$(dirname "$0")
+SCRIPTNAME="robotframework_template_generator.py"
 while getopts ":hm" option; do
     case $option in
         h ) # display Help
             Help
-            RUN=false
             exit;;
         m )
             TAGOPTION=y
-            python3 robotframework_template_generator.py $2 $3 $4 $TAGOPTION
+            python3 $BASEDIR/$SCRIPTNAME $2 $3 $4 $TAGOPTION
             exit;;
         \? )
             echo "Error: Invalid option"
-            RUN=false
             exit;;
    esac
 done
 # If option is not set
-python3 robotframework_template_generator.py $1 $2 $3 $TAGOPTION
+python3 $BASEDIR/$SCRIPTNAME $1 $2 $3 $TAGOPTION
