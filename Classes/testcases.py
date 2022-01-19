@@ -65,7 +65,7 @@ class Testcases(Base):
             self.__is_not_end_of_tags(line))
 
     def __is_tag(self, inp):
-        return re.search('^[-_A-Za-z0-9]+$', inp.strip())
+        return re.search('^[-_A-Za-z0-9& ]+$', inp.strip())
 
     def __add_single_string_to_tag_list(self, tag_list, string):
         string = str(string)
@@ -100,7 +100,7 @@ class Testcases(Base):
     def __append_tags_to_list(self, tag_list):
         tag_str = self.__get_tag_string()
         for tag in tag_list:
-            tag = tag.replace(' ', '')
+            # tag = tag.replace(' ', '')
             if self.__is_tag(tag):
                 tag_str += '    ' + tag
             else:
@@ -219,7 +219,7 @@ class Testcases(Base):
         res_tag_list = []
         tag_str = line.replace('...', '')
         tag_str = line.replace('[Tags]', '')
-        tag_list = tag_str.split(' ')
+        tag_list = tag_str.split('    ')
         for tag in tag_list:
             tag = tag.strip()
             if tag != '' and not self.__is_tag_added(tag, res_tag_list):
@@ -243,7 +243,7 @@ class Testcases(Base):
             if found_tag and self.__is_not_end_of_tags(line):
                 tag_list = self.__get_tag_list_from_line(line)
                 self.append_items_from_list_to_list(tag_list, res_tag_list)
-            if self.__is_tc_number(line) and found_tag:
+            else:
                 break
         old_robot_file.close()
         self.remove_duplicate_from_list(res_tag_list)
