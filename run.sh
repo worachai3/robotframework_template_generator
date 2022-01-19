@@ -16,15 +16,22 @@ Help()
    echo "    m   Merge tags from file.xlsx with scrip1.robot (keep only tags in file.xlsx by default)"
    echo
    echo "REMARKS:"
-   echo "    1. When using scipt without option, tags in new script will always arrange in the following format"
+   echo "    1. If there are spaces in any field of excel, spaces will be removed"
+   echo "    ex. Excel        ->    Feature With Spaces"
+   echo "        New script   ->    FeatureWithSpaces"
+   echo "    2. When using scipt without option, tags in new script will always arrange in the following format"
    echo "    [Tags]    {Feature}    {SubFeature}    {TagsInExcel}    {Defects}"
    echo
-   echo "    2. When using -m option, tags in new script will always arrange in the following format"
+   echo "    3. When using -m option, tags in new script will always arrange in the following format"
    echo "    [Tags]    {Feature}    {SubFeature}    {TagsInExcel}    {Defects}    {TagsInOldScript}"
    echo
-   echo "    3. If tags are duplicated, new script will get each one of those duplicated tags will be generated one of each"
-   echo "    ex. OLD  ->    [Tags]    DuplicatedTag    DuplicatedTag    NotDuplicatedTag"
-   echo "        NEW ->    [Tags]    DuplicatedTag    NotDuplicatedTag"
+   echo "    4. If tags are duplicated in old script, new script will generate only one of each"
+   echo "    ex. Old script   ->    [Tags]    DuplicatedTag    DuplicatedTag    NotDuplicatedTag"
+   echo "        New script   ->    [Tags]    DuplicatedTag    NotDuplicatedTag"
+   echo
+   echo "    5. If tag in old script is sperated by one space, this tag will be generated into different tags"
+   echo "    ex. Old script   ->    [Tags]    This is one tag"
+   echo "        New script   ->    [Tags]    This    is    one    tag"
 }
 
 ############################################################
