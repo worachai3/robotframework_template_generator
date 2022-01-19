@@ -26,13 +26,13 @@ class Testcases(Base):
         self.script = []
 
     def __is_not_end_of_tags(self, line):
-        return line.startswith('    ...')
+        return re.search('\...', line)
 
     def __is_documentation(self, line):
-        return line.startswith(self.__get_documentation_string())
+        return re.search('\[Documentation]', line)
 
     def __is_tags(self, line):
-        return line.startswith(self.__get_tag_string())
+        return re.search('\[Tags]', line)
 
     def __is_tc_section(self, line):
         return self.match(line, self.__get_test_cases_string())
@@ -152,7 +152,7 @@ class Testcases(Base):
     def __append_tag_list_option_n(self, row, found_tc):
         tag_list = self.__get_tag_list_from_excel_check_existed(row, found_tc)
         tag_list = self.remove_duplicate_from_list(tag_list)
-        self.__add_new_line_to_tag_list(tag_list)
+        tag_list = self.__add_new_line_to_tag_list(tag_list)
         self.__append_tags_to_list(tag_list)
 
     def __append_tag_by_tc_no(self, row):
@@ -249,7 +249,9 @@ class Testcases(Base):
                 found_tag = True
                 tag_list = self.__get_tag_list_from_line(line)
                 self.append_items_from_list_to_list(tag_list, res_tag_list)
-            if found_tag and self.__is_not_end_of_tags(line):
+            if not found_tag:
+                continue
+            if self.__is_not_end_of_tags(line):
                 tag_list = self.__get_tag_list_from_line(line)
                 self.append_items_from_list_to_list(tag_list, res_tag_list)
             else:
