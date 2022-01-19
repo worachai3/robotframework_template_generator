@@ -64,6 +64,9 @@ class Testcases(Base):
         return self.__is_documentation(line) or self.__is_tags(line) or (
             self.__is_not_end_of_tags(line))
 
+    def __is_tag(self, inp):
+        return re.search('^[-_A-Za-z0-9]+$', inp.strip())
+
     def __add_single_string_to_tag_list(self, tag_list, string):
         string = str(string)
         tag_list.append(string)
@@ -79,12 +82,14 @@ class Testcases(Base):
 
     def __add_new_line_to_tag_list(self, tag_list):
         line = self.__get_tag_string() + '    '
-        tag_list = [i for n, i in enumerate(tag_list) if i not in tag_list[:n]]
+        self.remove_duplicate_from_list(tag_list)
         for index in range(len(tag_list)):
+            if not self.__is_tag(tag_list[index]):
+                continue
             if not self.__is_line_too_long(line + '    ' + tag_list[index]):
                 line += tag_list[index].strip() + '    '
             else:
-                if tag_list[index] != tag_list[-1]:
+                if index != len(tag_list)-1 and len(tag_list[index]) < 50:
                     line = '    ...    '
                     tag_list.insert(index, '\n    ...    ')
         return tag_list
@@ -96,11 +101,12 @@ class Testcases(Base):
         self.remove_duplicate_from_list(tag_list)
         tag_str = self.__get_tag_string()
         for tag in tag_list:
-            tag = tag.strip()
-            if tag != '...':
+            tag = tag.replace(' ', '')
+            if self.__is_tag(tag):
                 tag_str += '    ' + tag
             else:
-                tag_str += '\n    ...   '
+                if not self.__is_tag(self.script[-1]):
+                    tag_str += '\n    ...   '
         self.__append_to_list(tag_str)
 
     def __get_tag_from_excel(self, row):
@@ -114,7 +120,6 @@ class Testcases(Base):
         tag_list = self.__add_multiple_string_to_tag_list(
             tag_list, row[defects])
         self.remove_duplicate_from_list(tag_list)
-        tag_list = self.__add_new_line_to_tag_list(tag_list)
         return tag_list
 
     def __get_tag_from_excel_new_case(self, row):
@@ -129,7 +134,6 @@ class Testcases(Base):
             tag_list, row[defects])
         tag_list = self.__add_single_string_to_tag_list(tag_list, 'NotReady')
         self.remove_duplicate_from_list(tag_list)
-        tag_list = self.__add_new_line_to_tag_list(tag_list)
         return tag_list
 
     def __append_tag_list_option_y(self, row, found_tc):
@@ -148,6 +152,8 @@ class Testcases(Base):
 
     def __append_tag_list_option_n(self, row, found_tc):
         tag_list = self.__get_tag_list_from_excel_check_existed(row, found_tc)
+        self.remove_duplicate_from_list(tag_list)
+        self.__add_new_line_to_tag_list(tag_list)
         self.__append_tags_to_list(tag_list)
 
     def __append_tag_by_tc_no(self, row):
