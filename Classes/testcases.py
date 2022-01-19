@@ -6,7 +6,7 @@ import pandas as pd
 feature = 'Feature'
 subfeature = 'Sub Feature'
 tc_no = 'Test Cases No.'
-tc_name = 'Test Cases Name'
+tc_name = 'Test Objective'
 tag = 'Tag / Requirement Ref.'
 priority = 'Priority'
 defects = 'Defects'
@@ -82,7 +82,7 @@ class Testcases(Base):
 
     def __add_new_line_to_tag_list(self, tag_list):
         line = self.__get_tag_string() + '    '
-        self.remove_duplicate_from_list(tag_list)
+        tag_list = self.remove_duplicate_from_list(tag_list)
         for index in range(len(tag_list)):
             if not self.__is_tag(tag_list[index]):
                 continue
@@ -98,7 +98,6 @@ class Testcases(Base):
         self.script.append(line)
 
     def __append_tags_to_list(self, tag_list):
-        self.remove_duplicate_from_list(tag_list)
         tag_str = self.__get_tag_string()
         for tag in tag_list:
             tag = tag.replace(' ', '')
@@ -119,7 +118,7 @@ class Testcases(Base):
         tag_list = self.__add_multiple_string_to_tag_list(tag_list, row[tag])
         tag_list = self.__add_multiple_string_to_tag_list(
             tag_list, row[defects])
-        self.remove_duplicate_from_list(tag_list)
+        tag_list = self.remove_duplicate_from_list(tag_list)
         return tag_list
 
     def __get_tag_from_excel_new_case(self, row):
@@ -133,7 +132,7 @@ class Testcases(Base):
         tag_list = self.__add_multiple_string_to_tag_list(
             tag_list, row[defects])
         tag_list = self.__add_single_string_to_tag_list(tag_list, 'NotReady')
-        self.remove_duplicate_from_list(tag_list)
+        tag_list = self.remove_duplicate_from_list(tag_list)
         return tag_list
 
     def __append_tag_list_option_y(self, row, found_tc):
@@ -148,11 +147,12 @@ class Testcases(Base):
             tag_list = self.__get_tag_from_excel(row)
         else:
             tag_list = self.__get_tag_from_excel_new_case(row)
+        tag_list = self.remove_duplicate_from_list(tag_list)
         return tag_list
 
     def __append_tag_list_option_n(self, row, found_tc):
         tag_list = self.__get_tag_list_from_excel_check_existed(row, found_tc)
-        self.remove_duplicate_from_list(tag_list)
+        tag_list = self.remove_duplicate_from_list(tag_list)
         self.__add_new_line_to_tag_list(tag_list)
         self.__append_tags_to_list(tag_list)
 
@@ -283,7 +283,7 @@ class Testcases(Base):
         old_robot_file.close()
 
     def __get_testcases_script_from_testcases_file(self, tc_file_path):
-        df = pd.read_excel(tc_file_path, usecols='B, C, D, E, M, Q, Y')
+        df = pd.read_excel(tc_file_path, usecols='B, C, D, F, M, Q, Y')
         for index, row in df.iterrows():
             self.__append_tc_number_to_list(row[tc_no].strip())
             self.__append_documentation_to_list(row[tc_name])
