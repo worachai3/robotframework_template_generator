@@ -60,12 +60,12 @@ class Testcases(Base):
     def __is_tc_number_and_is_not_generated(self, line):
         return self.__is_tc_number(line) and not self.__is_tc_generated(line)
 
-    def __is_not_test_step_in_tc(self, line):
-        return self.__is_documentation(line) or self.__is_tags(line) or (
-            self.__is_not_end_of_tags(line))
+    def __is_not_test_step_in_tc(self, line, found_tag, found_doc):
+        return self.__is_documentation(line) or self.__is_tags(line) or ((
+            found_tag or found_doc) and self.__is_not_end_of_tags(line))
 
     def __is_tag(self, inp):
-        return re.search('^[-_A-Za-z0-9]+$', inp.strip())
+        return re.search('^[-_A-Za-z0-9& ]+$', inp.strip())
 
     def __add_single_string_to_tag_list(self, tag_list, string):
         string = str(string)
@@ -100,7 +100,6 @@ class Testcases(Base):
     def __append_tags_to_list(self, tag_list):
         tag_str = self.__get_tag_string()
         for tag in tag_list:
-            tag = tag.replace(' ', '')
             if self.__is_tag(tag):
                 tag_str += '    ' + tag
             else:
@@ -183,6 +182,8 @@ class Testcases(Base):
 
     def __append_test_step_to_list(self, testcase_no):
         found_tc = False
+        found_tag = False
+        found_doc = False
         old_robot_file = open(self.old_robot_file_path)
         for line in old_robot_file:
             if self.__is_match_tc_number(line, testcase_no):
@@ -190,8 +191,16 @@ class Testcases(Base):
                 continue
             if not found_tc:
                 continue
-            if self.__is_not_test_step_in_tc(line):
+            if self.__is_tags(line):
+                found_tag = True
+                found_doc = False
+            if self.__is_documentation(line):
+                found_doc = True
+                found_tag = False
+            if self.__is_not_test_step_in_tc(line, found_tag, found_doc):
                 continue
+            found_doc = False
+            found_tag = False
             if self.__is_end_of_testcase(line):
                 break
             self.__append_to_list(line.rstrip())
@@ -219,7 +228,7 @@ class Testcases(Base):
         res_tag_list = []
         tag_str = line.replace('...', '')
         tag_str = line.replace('[Tags]', '')
-        tag_list = tag_str.split(' ')
+        tag_list = tag_str.split('    ')
         for tag in tag_list:
             tag = tag.strip()
             if tag != '' and not self.__is_tag_added(tag, res_tag_list):
@@ -243,7 +252,7 @@ class Testcases(Base):
             if found_tag and self.__is_not_end_of_tags(line):
                 tag_list = self.__get_tag_list_from_line(line)
                 self.append_items_from_list_to_list(tag_list, res_tag_list)
-            if self.__is_tc_number(line) and found_tag:
+            else:
                 break
         old_robot_file.close()
         self.remove_duplicate_from_list(res_tag_list)
