@@ -26,7 +26,7 @@ class Testcases(Base):
         self.script = []
 
     def __is_not_end_of_tags(self, line):
-        return re.search('\...', line)
+        return re.search('\.\.\.', line)
 
     def __is_documentation(self, line):
         return re.search('\[Documentation]', line)
@@ -275,7 +275,7 @@ class Testcases(Base):
                 line += testcase_name_list[index].strip() + ' '
                 res += testcase_name_list[index].strip() + ' '
             else:
-                if testcase_name_list[index] != testcase_name_list[-1]:
+                if not re.search("\.\.\.", testcase_name_list[index-1]):
                     line = '    ...    '
                     res += '\n    ...    ' + testcase_name_list[index] + ' '
         res = self.__get_documentation_string() + res
