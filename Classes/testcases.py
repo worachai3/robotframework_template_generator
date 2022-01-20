@@ -44,13 +44,13 @@ class Testcases(Base):
         return testcase in self.generated_testcases
 
     def __is_end_of_testcase(self, line):
-        return self.is_end_of_section(line) or self.__is_tc(line)
+        return self.is_end_of_section(line) or self.__is_tc(line.rstrip())
 
     def __is_tc_number(self, line):
-        return re.search('^[A-Za-z]+-[0-9]+$', line.strip())
+        return re.search('^[A-Za-z]+-[0-9]+$', line.rstrip())
 
     def __is_tc(self, line):
-        return re.search('^[A-Za-z-0-9]+[ A-Za-z-0-9]+$', line)
+        return re.search('^[A-Za-z-0-9]+[ A-Za-z-0-9]+$', line.rstrip())
 
     def __is_tag_added(self, tag, tag_list):
         for t in tag_list:
