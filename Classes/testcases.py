@@ -40,14 +40,17 @@ class Testcases(Base):
     def __is_line_too_long(self, line):
         return len(line) >= self.__get_line_length()
 
-    def __is_tc_generated(self, testcase_no):
-        return testcase_no in self.generated_testcases
+    def __is_tc_generated(self, testcase):
+        return testcase in self.generated_testcases
 
     def __is_end_of_testcase(self, line):
         return self.is_end_of_section(line) or self.__is_tc_number(line)
 
     def __is_tc_number(self, line):
         return re.search('^[A-Za-z]+-[0-9]+$', line.strip())
+
+    def __is_tc(self, line):
+        return re.search('^[A-Za-z-0-9]+[ A-Za-z-0-9]+$', line)
 
     def __is_tag_added(self, tag, tag_list):
         for t in tag_list:
@@ -59,6 +62,9 @@ class Testcases(Base):
 
     def __is_tc_number_and_is_not_generated(self, line):
         return self.__is_tc_number(line) and not self.__is_tc_generated(line)
+
+    def __is_tc_and_is_not_generated(self, line):
+        return self.__is_tc(line) and not self.__is_tc_generated(line)
 
     def __is_not_test_step_in_tc(self, line, found_tag, found_doc):
         return self.__is_documentation(line) or self.__is_tags(line) or ((
@@ -277,12 +283,18 @@ class Testcases(Base):
 
     def __get_testcases_script_from_exisiting_script(self):
         found_tc = False
+        found_tc_section = False
         old_robot_file = open(self.old_robot_file_path, 'r+')
         for line in old_robot_file:
-            line = line.strip('\n')
-            if self.__is_tc_number_and_is_not_generated(line.strip()):
+            line = line.rstrip('\n')
+            if self.__is_tc_section(line.strip()):
+                found_tc_section = True
+                continue
+            if not found_tc_section:
+                continue
+            if self.__is_tc_and_is_not_generated(line):
                 found_tc = True
-                self.__append_to_list(line.strip())
+                self.__append_to_list(line)
                 continue
             if self.__is_end_of_testcase(line) and found_tc:
                 if self.__is_tc_number(line) and self.__is_tc_generated(line):
