@@ -44,7 +44,7 @@ class Testcases(Base):
         return testcase in self.generated_testcases
 
     def __is_end_of_testcase(self, line):
-        return self.is_end_of_section(line) or self.__is_tc_number(line)
+        return self.is_end_of_section(line) or self.__is_tc(line)
 
     def __is_tc_number(self, line):
         return re.search('^[A-Za-z]+-[0-9]+$', line.strip())
