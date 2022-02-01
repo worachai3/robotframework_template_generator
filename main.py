@@ -7,7 +7,7 @@ class App(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.title = 'PyQt5 file dialogs - pythonspot.com'
+        self.title = 'Robot Template Gen'
         self.left = 10
         self.top = 10
         self.width = 270
