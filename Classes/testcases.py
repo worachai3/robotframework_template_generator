@@ -269,15 +269,20 @@ class Testcases(Base):
     def __get_tc_name_string(self, testcase_name):
         res = ''
         line = self.__get_documentation_string()
-        testcase_name_list = testcase_name.split()
+        testcase_name_list = testcase_name.split('\n')
+
         for index in range(len(testcase_name_list)):
-            if not self.__is_line_too_long(line + testcase_name_list[index]):
-                line += testcase_name_list[index].strip() + ' '
-                res += testcase_name_list[index].strip() + ' '
-            else:
-                if not re.search("\.\.\.", testcase_name_list[index-1]):
-                    line = '    ...    '
-                    res += '\n    ...    ' + testcase_name_list[index] + ' '
+            words = testcase_name_list[index].split(' ')
+            for word in words:
+                if not self.__is_line_too_long(line):
+                    line += word + ' '
+                    res += word + ' '
+                else:
+                    line = '    ...    ' + word + ' '
+                    res += '\n    ...    ' + word + ' '
+            if index < len(testcase_name_list)-1:
+                line = '    ...    '
+                res += '\n    ...    '
         res = self.__get_documentation_string() + res
         return res
 
