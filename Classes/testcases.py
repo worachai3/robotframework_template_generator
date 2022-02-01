@@ -71,7 +71,7 @@ class Testcases(Base):
             found_tag or found_doc) and self.__is_not_end_of_tags(line))
 
     def __is_tag(self, inp):
-        return re.search('^[-_A-Za-z0-9& ]+$', inp.strip())
+        return re.search('^[-_A-Za-z0-9!@#$%^&*(). ]+$', inp.strip())
 
     def __add_single_string_to_tag_list(self, tag_list, string):
         string = str(string)
@@ -111,6 +111,7 @@ class Testcases(Base):
             else:
                 if not self.__is_tag(self.script[-1]):
                     tag_str += '\n    ...   '
+        print(f'TAG STR    {tag_str}')
         self.__append_to_list(tag_str)
 
     def __get_tag_from_excel(self, row):
@@ -143,8 +144,11 @@ class Testcases(Base):
     def __append_tag_list_option_y(self, row, found_tc):
         tag_excel = self.__get_tag_list_from_excel_check_existed(row, found_tc)
         tag_list = self.__get_tags_from_tc_number(row[tc_no].strip())
+        print(f'TC NUM    {tag_list}\n')
         tag_list = self.__merge_tags_with_existing_tag(tag_list, tag_excel)
+        print(f'EXISTING    {tag_list}\n')
         tag_list = self.__add_new_line_to_tag_list(tag_list)
+        print(f'RES    {tag_list}\n')
         self.__append_tags_to_list(tag_list)
 
     def __get_tag_list_from_excel_check_existed(self, row, found_tc):
@@ -255,11 +259,13 @@ class Testcases(Base):
                 found_tag = True
                 tag_list = self.__get_tag_list_from_line(line)
                 self.append_items_from_list_to_list(tag_list, res_tag_list)
+                continue
             if not found_tag:
                 continue
             if self.__is_not_end_of_tags(line):
                 tag_list = self.__get_tag_list_from_line(line)
                 self.append_items_from_list_to_list(tag_list, res_tag_list)
+                continue
             else:
                 break
         old_robot_file.close()
@@ -292,6 +298,8 @@ class Testcases(Base):
         old_robot_file = open(self.old_robot_file_path, 'r+')
         for line in old_robot_file:
             line = line.rstrip('\n')
+            if found_tc_section and line.startswith('***'):
+                break
             if self.__is_tc_section(line.strip()):
                 found_tc_section = True
                 continue

@@ -23,5 +23,6 @@ class Base:
                 return True
 
     def remove_duplicate_from_list(self, list):
-        res = [i for n, i in enumerate(list) if i not in list[:n]]
+        res = [i for n, i in enumerate(
+            list) if i not in list[:n] and i != '...']
         return res
