@@ -1,7 +1,6 @@
 import os
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog, QPushButton, QCheckBox
-from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QApplication, QWidget, QFileDialog, QPushButton, QCheckBox
 
 
 class App(QWidget):
@@ -17,11 +16,6 @@ class App(QWidget):
         self.old_robot_file_path = ''
         self.new_robot_file_path = ''
         self.testcase_path = ''
-      #
-      # self.b1 = QCheckBox("Button1")
-      # self.b1.setChecked(True)
-      # self.b1.stateChanged.connect(lambda:self.btnstate(self.b1))
-      # layout.addWidget(self.b1)
         self.option_checkbox = QCheckBox('Merge tags with old script', self)
         self.option_checkbox.setGeometry(5, 90, 300, 20)
 
@@ -45,10 +39,10 @@ class App(QWidget):
     def run_python_script(self):
         if self.option_checkbox.isChecked():
             os.system(
-                f'./run.sh -m {self.testcase_path} {self.old_robot_file_path} new.robot')
+                f'python3 robotframework_template_generator.py {self.testcase_path} {self.old_robot_file_path} new.robot y')
         else:
             os.system(
-                f'./run.sh {self.testcase_path} {self.old_robot_file_path} new.robot')
+                f'python3 robotframework_template_generator.py {self.testcase_path} {self.old_robot_file_path} new.robot n')
 
     def initUI(self):
         self.setWindowTitle(self.title)
