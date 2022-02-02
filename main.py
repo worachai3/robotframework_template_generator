@@ -1,6 +1,7 @@
 import os
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QFileDialog, QPushButton, QCheckBox
+from PyQt5.QtWidgets import QApplication, QWidget, QFileDialog, QPushButton, QCheckBox, QTextEdit
+import PyQt5.QtGui as QtGui
 
 
 class App(QWidget):
@@ -10,27 +11,52 @@ class App(QWidget):
         self.title = 'Robot Template Gen'
         self.left = 10
         self.top = 10
-        self.width = 270
+        self.width = 1100
         self.height = 200
         self.initUI()
         self.old_robot_file_path = ''
         self.new_robot_file_path = ''
         self.testcase_path = ''
-        self.option_checkbox = QCheckBox('Merge tags with old script', self)
+        self.option_checkbox = QCheckBox(
+            'Merge tags in test cases file with old script', self)
         self.option_checkbox.setGeometry(5, 90, 300, 20)
 
+        self.new_script_file_path_text = QTextEdit(self)
+        self.old_script_file_path_text = QTextEdit(self)
+        self.testcase_file_path_text = QTextEdit(self)
+
+        self.new_script_file_path_text.setReadOnly(True)
+        self.old_script_file_path_text.setReadOnly(True)
+        self.testcase_file_path_text.setReadOnly(True)
+        self.new_script_file_path_text.setFont(QtGui.QFont('Arial', 10))
+        self.old_script_file_path_text.setFont(QtGui.QFont('Arial', 10))
+        self.testcase_file_path_text.setFont(QtGui.QFont('Arial', 10))
+
+        # font = QtGui.QFont()
+        # font.setPointSize(16)
+        # self.editor.setFont(font)
+
+        self.testcase_file_path_text.setGeometry(90, 0, 1005, 30)
+        self.old_script_file_path_text.setGeometry(90, 30, 1005, 30)
+        self.new_script_file_path_text.setGeometry(90, 60, 1005, 30)
+
         browse_old_script_button = QPushButton('Old Script', self)
-        browse_old_script_button.setGeometry(0, 0, 135, 90)
+        browse_old_script_button.setGeometry(0, 30, 90, 30)
         browse_old_script_button.clicked.connect(
             lambda: self.get_old_robot_script())
 
+        browse_new_script_button = QPushButton('New Script', self)
+        browse_new_script_button.setGeometry(0, 60, 90, 30)
+        browse_new_script_button.clicked.connect(
+            lambda: self.get_new_robot_script())
+
         browse_test_case_button = QPushButton('Test Cases', self)
-        browse_test_case_button.setGeometry(135, 0, 135, 90)
+        browse_test_case_button.setGeometry(0, 0, 90, 30)
         browse_test_case_button.clicked.connect(
             lambda: self.get_test_case_file())
 
         generate_new_file_button = QPushButton('Generate', self)
-        generate_new_file_button.setGeometry(0, 110, 270, 90)
+        generate_new_file_button.setGeometry(0, 110, 1100, 90)
         generate_new_file_button.clicked.connect(
             lambda: self.run_python_script())
 
@@ -39,10 +65,10 @@ class App(QWidget):
     def run_python_script(self):
         if self.option_checkbox.isChecked():
             os.system(
-                f'python3 robotframework_template_generator.py {self.testcase_path} {self.old_robot_file_path} new.robot y')
+                f'python3 robotframework_template_generator.py {self.testcase_path} {self.old_robot_file_path} {self.new_robot_file_path}/new.robot y')
         else:
             os.system(
-                f'python3 robotframework_template_generator.py {self.testcase_path} {self.old_robot_file_path} new.robot n')
+                f'python3 robotframework_template_generator.py {self.testcase_path} {self.old_robot_file_path} {self.new_robot_file_path}/new.robot n')
 
     def initUI(self):
         self.setWindowTitle(self.title)
@@ -53,18 +79,22 @@ class App(QWidget):
         options |= QFileDialog.DontUseNativeDialog
         self.old_robot_file_path, _ = QFileDialog.getOpenFileName(
             self, "Old Robot Script File", "", "Robot Script File (*.robot)", options=options)
+        self.old_script_file_path_text.setText(self.old_robot_file_path)
 
     def get_new_robot_script(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        self.new_robot_file_path, _ = QFileDialog.getOpenFileNames(
-            self, "New Robot Script File", "", "Robot Script File (*.robot)", options=options)
+        self.new_robot_file_path = QFileDialog.getExistingDirectory(
+            self, "Select Directory")
+        self.new_script_file_path_text.setText(
+            f'{self.new_robot_file_path}/new.robot')
 
     def get_test_case_file(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
         self.testcase_path, _ = QFileDialog.getOpenFileName(
             self, "Test Case File", "", "Excel File (*.xlsx)", options=options)
+        self.testcase_file_path_text.setText(self.testcase_path)
 
 
 if __name__ == '__main__':
