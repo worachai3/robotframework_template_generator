@@ -346,7 +346,8 @@ class Testcases(Base):
         old_robot_file.close()
 
     def __get_testcases_script_from_testcases_file(self, tc_file_path):
-        df = pd.read_excel(tc_file_path, usecols='B, C, D, F, M, Q, Y')
+        df = pd.read_excel(tc_file_path)
+
         for index, row in df.iterrows():
             self.__append_tc_number_to_list(row[tc_no].strip())
             self.__append_documentation_to_list(row[tc_name])
@@ -493,6 +494,13 @@ def set_file_path(testcases,old,new,tag):
         global old_robot_file_path
         global new_robot_file_path
         global tag_option
+        global no_old
+        if(old == ''):
+            no_old = True
+            old = '/tmp/old.robot'
+            os.system(f'touch {old}')
+        else:
+            no_old = False
         testcases_file_path = testcases
         old_robot_file_path = old
         new_robot_file_path = new
@@ -544,6 +552,8 @@ def run_robot_main(testcases,old,new,tag):
     robot_template_generator = RobotTemplateGenerator()
     robot_template_generator.generate_robot_template()
     robot_template_generator.new_robot_file.close()
+    if no_old:
+        os.system('rm /tmp/old.robot')
 
 class App(QWidget):
 
@@ -564,9 +574,35 @@ class App(QWidget):
 
     def run_python_script(self):
         if self.option_checkbox.isChecked():
-            run_robot_main(self.testcase_path,self.old_robot_file_path,f'{self.new_robot_file_path}/new.robot','y')
+            try:
+                if self.new_robot_file_path != '' and self.testcase_path != '':
+                    run_robot_main(self.testcase_path,self.old_robot_file_path,f'{self.new_robot_file_path}/new.robot','y')
+                if self.new_robot_file_path == '':
+                    self.new_script_file_path_text.setText('Please select directory for new robot file')
+                else:
+                    self.new_script_file_path_text.setText(
+                        f'{self.new_robot_file_path}/new.robot')
+                if self.testcase_path == '':
+                    self.testcase_file_path_text.setText('Please select testcase file')
+                else:
+                    self.testcase_file_path_text.setText(self.testcase_path)
+            except Exception as e:
+                print(e)
         else:
-            run_robot_main(self.testcase_path,self.old_robot_file_path,f'{self.new_robot_file_path}/new.robot','n')
+            try:
+                if self.new_robot_file_path != '' and self.testcase_path != '':
+                    run_robot_main(self.testcase_path,self.old_robot_file_path,f'{self.new_robot_file_path}/new.robot','n')
+                if self.new_robot_file_path == '':
+                    self.new_script_file_path_text.setText('Please select directory for new robot file')
+                else:
+                    self.new_script_file_path_text.setText(
+                        f'{self.new_robot_file_path}/new.robot')
+                if self.testcase_path == '':
+                    self.testcase_file_path_text.setText('Please select testcase file')
+                else:
+                    self.testcase_file_path_text.setText(self.testcase_path)
+            except Exception as e:
+                print(e)
 
     def initUI(self):
         self.setWindowTitle(self.title)
@@ -632,15 +668,21 @@ class App(QWidget):
         options |= QFileDialog.DontUseNativeDialog
         self.new_robot_file_path = QFileDialog.getExistingDirectory(
             self, "Select Directory")
-        self.new_script_file_path_text.setText(
-            f'{self.new_robot_file_path}/new.robot')
+        if self.new_robot_file_path == '':
+            self.new_script_file_path_text.setText('Please select directory for new robot file')
+        else:
+            self.new_script_file_path_text.setText(
+                f'{self.new_robot_file_path}/new.robot')
 
     def get_test_case_file(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
         self.testcase_path, _ = QFileDialog.getOpenFileName(
             self, "Test Case File", "", "Excel File (*.xlsx)", options=options)
-        self.testcase_file_path_text.setText(self.testcase_path)
+        if self.testcase_path == '':
+            self.testcase_file_path_text.setText('Please select testcase file')
+        else:
+            self.testcase_file_path_text.setText(self.testcase_path)
 
 
 if __name__ == '__main__':
