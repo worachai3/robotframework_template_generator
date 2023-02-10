@@ -7,7 +7,7 @@ This project is for generating robotframework script file. Supporting both new t
 ---
 Install required package
 ```shell
-pip install -r requirement.txt
+python3 -m pip install -r requirement.txt
 ```
 
 ## Excel File Structure
@@ -64,13 +64,7 @@ git clone https://github.com/worachai3/robotframework_template_generator.git
 ```
 {testcases}.xlsx
 {old_robot_file}.robot (Can be empty file but file must be existed)
-{new_robot_file}.robot (This file will be created if is not existed)
 ```  
-
-- Run shell script  
-```shell
-./run.sh [-h|-m] {testcase_file_name}.xlsx {old_robot_file}.robot {new_robot_file}.robot
-```
 
 ## Note
 ---
